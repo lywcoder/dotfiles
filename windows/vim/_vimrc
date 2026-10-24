@@ -1,0 +1,58 @@
+" ==========================================================================
+" 1. 基础设置（原生体验强化）
+" ==========================================================================
+set nocompatible            " 摆脱传统 vi 兼容模式
+set encoding=utf-8          " 强制使用 UTF-8
+set number                  " 显示绝对行号
+set relativenumber          " 显示相对行号
+set tabstop=4               " Tab 宽 4 个空格
+set shiftwidth=4            " 缩进宽 4 个空格
+set expandtab               " Tab 自动转换为空格
+set autoindent              " 继承前一行缩进
+set smartcase               " 智能大小写敏感
+set hlsearch                " 高亮搜索结果
+set incsearch               " 实时跳转到搜索匹配
+set scrolloff=5             " 预留滚动边距
+" set cursorline              " 高亮当前行
+syntax on                   " 开启基础语法高亮
+
+" 设置 Leader 键为空格
+let mapleader = " "
+nnoremap <leader>w :w<CR>
+nnoremap <leader>q :q<CR>
+nnoremap <silent> <Esc> :nohlsearch<CR>
+
+" ==========================================================================
+" 2. 插件安装列表（自动适配 Windows 与 Linux 目录）
+" ==========================================================================
+if has('win32') || has('win64')
+  call plug#begin('~/vimfiles/plugged')
+else
+  call plug#begin('~/.vim/plugged')
+endif
+
+" 插件 1：轻量状态栏美化
+Plug 'itchyny/lightline.vim'
+
+" 插件 2：修改代码包裹符号（如 cs"' 将双引号改成单引号）
+Plug 'tpope/vim-surround'
+
+" 插件 3：极简自动闭合括号
+Plug 'jiangmiao/auto-pairs'
+
+" 插件 4：经典主题
+Plug 'morhetz/gruvbox'
+
+call plug#end()
+
+" ==========================================================================
+" 3. 插件专属配置
+" ==========================================================================
+set background=dark
+silent! colorscheme gruvbox
+set laststatus=2            " 始终显示底部状态栏（Lightline 必需）
+" --- 光标形状配置（进入插入模式为竖线 |，普通模式为方块 █）---
+let &t_SI = "\e[6 q"      " 插入模式：常亮竖线（若需要闪烁竖线改用 \e[5 q）
+let &t_EI = "\e[2 q"      " 普通模式：常亮方块
+let &t_SR = "\e[4 q"      " 替换模式：下划线
+
