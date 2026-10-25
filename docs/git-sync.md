@@ -1,6 +1,6 @@
 # 多机器同步
 
-仓库地址：https://github.com/lywcoder/dotfiles 。Windows、WSL Ubuntu、WSL Fedora、服务器各自保留本地克隆；Linux 克隆放在 Linux 文件系统内。
+仓库地址：https://github.com/lywcoder/dotfiles 。Windows、WSL Ubuntu/Fedora/Arch，以及 Linux 本机和服务器各自保留本地克隆；Linux 克隆放在 Linux 文件系统内。
 符号链接只连接当前系统内的路径，不会在两个克隆或两台机器之间传播更改。
 
 修改配置后，先审核差异和未跟踪文件，确认没有密钥，再选择性暂存、提交、推送。不要盲目把整个 HOME 加入版本控制。

@@ -23,9 +23,9 @@ Windows 与 Linux 配置独立。Ubuntu/Fedora 共用 Linux 的 Bash、Zsh、Vim
 
 Windows bootstrap 和安装器只接受 C 盘物理目录；拒绝其他驱动器、UNC/WSL 共享路径，以及路径中的符号链接和 junction。Linux bootstrap 与安装器会先解析真实路径，再验证文件系统；不只根据 /mnt/c 这样的名字判断。共享配置文件和入口必须实际属于当前克隆。
 
-## Arch 评估
+## Arch 支持
 
-公共 Bash/Zsh/Vim/tmux 配置可以用于 Arch，所需工具和 Zsh 插件在 Arch 有对应软件包。以后主要需要补 pacman 安装分支、检查系统启动入口与插件安装路径，然后跑同样的测试。当前仍只提供 Ubuntu/Fedora 安装分支，没有配置 Arch，也没有新增 Arch 入口。
+现已新增 `arch/` 入口、pacman 分支与独立下载入口，继续使用同一套公共配置和路径规则。支持 Arch 本机、WSL 与 SSH；尚未在真实 Arch HOME 部署。安装与验证范围见 [Arch 指南](arch-linux.md)。
 
 参考：[Arch Zsh 软件包](https://archlinux.org/packages/extra/x86_64/zsh/)、[Arch FZF 软件包](https://archlinux.org/packages/extra/x86_64/fzf/)、[Arch zsh-autosuggestions](https://archlinux.org/packages/extra/any/zsh-autosuggestions/)。
 

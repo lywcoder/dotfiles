@@ -4,6 +4,7 @@ REPO=https://github.com/lywcoder/dotfiles.git
 BRANCH=main
 DEST="$HOME/.dotfiles"
 DRY_RUN=0
+SKIP_DEPS=0
 ARGS=()
 while (($#)); do
     case $1 in
@@ -11,7 +12,8 @@ while (($#)); do
             case $1 in --repo) REPO=$2 ;; --branch) BRANCH=$2 ;; --dir) DEST=$2 ;; esac; shift 2 ;;
         --dry-run) DRY_RUN=1; ARGS+=("$1"); shift ;;
         --profile) [[ $# -ge 2 ]] || exit 2; ARGS+=("$1" "$2"); shift 2 ;;
-        --skip-dependencies|--skip-plugins|--extras) ARGS+=("$1"); shift ;;
+        --skip-dependencies) SKIP_DEPS=1; ARGS+=("$1"); shift ;;
+        --skip-plugins|--extras) ARGS+=("$1"); shift ;;
         -h|--help) printf 'Usage: bootstrap.sh [--dir ~/.dotfiles] [--repo URL] [--branch main] [installer options]\n'; exit 0 ;;
         *) printf 'Unknown argument: %s\n' "$1" >&2; exit 2 ;;
     esac
@@ -58,13 +60,15 @@ elif ((DRY_RUN)); then
     exit 0
 else
     if ! command -v git >/dev/null 2>&1; then
+        if ((SKIP_DEPS)); then printf 'Git is required to clone; install it or omit --skip-dependencies.\n' >&2; exit 1; fi
         . /etc/os-release
         elevate=()
         if ((EUID != 0)); then command -v sudo >/dev/null || { printf 'Install git or sudo first.\n' >&2; exit 1; }; elevate=(sudo); fi
         case ${ID:-} in
             ubuntu) "${elevate[@]}" apt-get update; "${elevate[@]}" apt-get install -y git ca-certificates ;;
             fedora) "${elevate[@]}" dnf install -y git ca-certificates ;;
-            *) printf 'Only Ubuntu/Fedora are supported.\n' >&2; exit 1 ;;
+            arch) "${elevate[@]}" pacman -S --needed --noconfirm git ca-certificates ;;
+            *) printf 'Only Ubuntu/Fedora/Arch Linux are supported.\n' >&2; exit 1 ;;
         esac
     fi
     git clone --branch "$BRANCH" --single-branch -- "$REPO" "$DEST"

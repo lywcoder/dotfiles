@@ -25,6 +25,7 @@ class LinuxInstallTests(unittest.TestCase):
         self.home = self.base / 'home'
         self.home.mkdir()
         self.env = dict(os.environ, HOME=str(self.home), ZDOTDIR=str(self.home), SUDO_USER='', STARSHIP_CONFIG=str(self.home / 'theme.toml'))
+        self.distro = DISTRO
         self.installer = self.repo / 'scripts/install-linux.sh'
 
     def tearDown(self):
@@ -46,7 +47,7 @@ class LinuxInstallTests(unittest.TestCase):
         names = ['.bashrc', '.zshrc', '.vimrc', '.tmux.conf']
         for name in names:
             (self.home / name).write_text('old ' + name)
-        result = self.run_install('--profile', 'wsl-' + DISTRO)
+        result = self.run_install('--profile', 'wsl-' + self.distro)
         for name in names:
             self.assertTrue((self.home / name).is_symlink())
         backups = self.home / '.local/state/dotfiles-backups'
@@ -55,7 +56,7 @@ class LinuxInstallTests(unittest.TestCase):
             self.assertEqual(len(matches), 1)
             self.assertEqual(matches[0].read_text(), 'old ' + name)
             self.assertEqual(matches[0].parent.stat().st_mode & 0o777, 0o700)
-        self.run_install('--profile', 'ssh-' + DISTRO)
+        self.run_install('--profile', 'ssh-' + self.distro)
         self.assertEqual(len(list(backups.glob('*/.bashrc'))), 1)
         result = subprocess.run(['bash', '--noprofile', '--rcfile', str(self.home / '.bashrc'), '-ic', 'printf "BASH_OK:%s" "$HISTSIZE"'], env=self.env, capture_output=True, text=True, timeout=30)
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -93,7 +94,7 @@ class LinuxInstallTests(unittest.TestCase):
         self.assertFalse((self.home / '.local').exists())
 
     def test_wrong_distro_refused(self):
-        other = 'fedora' if DISTRO == 'ubuntu' else 'ubuntu'
+        other = 'fedora' if self.distro == 'ubuntu' else 'ubuntu'
         self.run_install('--profile', 'ssh-' + other, ok=False)
         self.assertEqual(list(self.home.iterdir()), [])
 
@@ -128,7 +129,7 @@ class LinuxInstallTests(unittest.TestCase):
         args = ['bash', str(self.repo / 'scripts/bootstrap.sh'), '--repo', str(self.repo), '--dir', str(dest), '--skip-dependencies', '--skip-plugins']
         result = subprocess.run(args, env=self.env, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
-        self.assertEqual((self.home / '.bashrc').resolve(), dest / DISTRO / '.bashrc')
+        self.assertEqual((self.home / '.bashrc').resolve(), dest / self.distro / '.bashrc')
         marker = dest / 'uncommitted-user-note'
         marker.write_text('keep me')
         result = subprocess.run(args, env=self.env, capture_output=True, text=True)
@@ -185,7 +186,7 @@ class LinuxInstallTests(unittest.TestCase):
         common = self.repo / 'linux/common/tmux.conf'
         with common.open('a') as stream:
             stream.write('\nset -g history-limit 54321\n')
-        for distro in ['ubuntu', 'fedora']:
+        for distro in ['ubuntu', 'fedora', 'arch']:
             with self.subTest(distro=distro):
                 entry = self.home / '.tmux.conf'
                 if entry.is_symlink():
@@ -204,7 +205,7 @@ class LinuxInstallTests(unittest.TestCase):
         bin_dir = self.base / 'fake-package-tools'
         bin_dir.mkdir()
         log = self.base / 'package-log'
-        for command in ['apt-get', 'dnf', 'starship', 'eza', 'lazygit', 'yazi', 'fastfetch']:
+        for command in ['apt-get', 'dnf', 'pacman', 'starship', 'eza', 'lazygit', 'yazi', 'fastfetch']:
             wrapper = bin_dir / command
             wrapper.write_text('#!/bin/sh\nprintf "%s\\n" "' + command + ' $*" >> "$DOTFILES_TEST_LOG"\n')
             wrapper.chmod(0o755)
@@ -215,10 +216,17 @@ class LinuxInstallTests(unittest.TestCase):
         result = subprocess.run(['bash', str(self.installer), '--skip-plugins', '--extras'], env=env, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         text = log.read_text()
-        self.assertIn('vim-enhanced' if DISTRO == 'fedora' else 'vim', text)
+        self.assertIn('vim-enhanced' if self.distro == 'fedora' else 'vim', text)
         self.assertIn('zsh', text)
         self.assertIn('tmux', text)
         self.assertNotIn('upgrade', text)
+        if self.distro == 'arch':
+            self.assertIn('pacman -S --needed --noconfirm', text)
+            self.assertIn('starship eza', text)
+            self.assertIn('pacman -Si -- lazygit', text)
+            self.assertNotIn('-Sy', text)
+            self.assertNotIn('apt-get', text)
+            self.assertNotIn('dnf', text)
 
 
 if __name__ == '__main__':

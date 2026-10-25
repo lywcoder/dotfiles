@@ -45,7 +45,7 @@ bash /tmp/dotfiles-bootstrap.sh --profile wsl-ubuntu --dry-run
 bash /tmp/dotfiles-bootstrap.sh --profile wsl-ubuntu
 ```
 
-SSH Ubuntu 把 `wsl-ubuntu` 换成 `ssh-ubuntu`。也可以省略 `--profile`，脚本自动检测 Ubuntu/Fedora 与 WSL。
+SSH Ubuntu 把 `wsl-ubuntu` 换成 `ssh-ubuntu`。也可以省略 `--profile`，脚本自动检测 Ubuntu/Fedora/Arch 与 WSL。
 
 ## WSL Fedora / SSH Fedora 新机器
 
@@ -66,6 +66,10 @@ SSH Fedora 把 `wsl-fedora` 换成 `ssh-fedora`。Fedora 的 `.bashrc` 会先读
 
 Linux 基础依赖使用 apt/dnf。Ubuntu 包为 `vim`、Fedora 包为 `vim-enhanced`；Ubuntu 的 bat 命令可用 batcat，配置会兼容。
 Starship 缺失时从官方安装器下载至 `~/.local/bin`，不添加第三方软件源。eza/可选工具不在启用软件源时会提示缺失，并使用后备行为；不会隐式切换第三方源。
+
+## Arch Linux（本机、WSL、SSH）
+
+使用可单独下载的 `scripts/download-arch.sh`，或克隆内的 `install-arch.sh` / `install-wsl-arch.sh` / `install-ssh-arch.sh`。它们复用公共配置、备份与链接逻辑；Arch 通过 pacman 官方源安装依赖。先自行 `pacman -Syu` 更新，安装器不执行单独的 `-Sy` 或全系统升级。完整命令见 [Arch 安装指南](arch-linux.md)。
 
 ## 已有克隆，包括你现在的 Ubuntu 和 Fedora
 
@@ -124,10 +128,10 @@ Windows 在确认目标仍是链接后用 Remove-Item 删除该链接，再用 M
 
 ## 配置共享边界
 
-Ubuntu 与 Fedora 加载同一份 `linux/common/bash.bash`、`zsh.zsh`、`vim.vim` 和 `tmux.conf`。Fedora Bash 额外加载 `/etc/bashrc`，WSL 高亮路径处理只在 WSL 启用；这些是平台适配，不是另外维护一套主要配置。
-Windows 只加载 `windows` 目录中的设置；`windows/vim/vim.vim` 独立于 Linux Vim。安装器仍只自动识别 Ubuntu/Fedora；不能据此保证所有衍生发行版的软件源和包名都相同。
+Ubuntu、Fedora 与 Arch 加载同一份 `linux/common/bash.bash`、`zsh.zsh`、`vim.vim` 和 `tmux.conf`。Fedora Bash 额外加载 `/etc/bashrc`，WSL 高亮路径处理只在 WSL 启用；这些是平台适配，不是另外维护一套主要配置。
+Windows 只加载 `windows` 目录中的设置；`windows/vim/vim.vim` 独立于 Linux Vim。安装器自动识别 Ubuntu/Fedora/Arch；不能据此保证所有衍生发行版的软件源和包名都相同。
 
-Arch Linux 可以在未来复用 Linux 公共配置，主要需要补充 pacman 的依赖安装与入口适配。目前没有新增 Arch 安装器，也没有修改已安装的 Arch 系统。
+Arch 通过 `arch/` 入口加载公共配置，支持本机、WSL 与 SSH；没有在已有 Arch HOME 执行安装。详见 [Arch 指南](arch-linux.md)。
 
 ## 私有覆盖
 

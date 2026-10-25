@@ -1,6 +1,6 @@
 # Dotfiles
 
-Windows、WSL Ubuntu/Fedora，以及通过 SSH 使用的 Ubuntu/Fedora 的个人配置。
+Windows、WSL Ubuntu/Fedora/Arch，以及通过 SSH 使用的 Ubuntu/Fedora/Arch 的个人配置。
 仓库地址：https://github.com/lywcoder/dotfiles 。各系统使用自己的本地克隆，通过 Git 同步。
 
 ## 支持范围
@@ -12,14 +12,19 @@ Windows、WSL Ubuntu/Fedora，以及通过 SSH 使用的 Ubuntu/Fedora 的个人
 | WSL Fedora | 同上，保留 Fedora `/etc/bashrc` 加载 | `scripts/install-wsl-fedora.sh` |
 | SSH Ubuntu | 在登录后的服务器本机安装上述 Linux 配置 | `scripts/install-ssh-ubuntu.sh` |
 | SSH Fedora | 同上，使用 Fedora 软件包 | `scripts/install-ssh-fedora.sh` |
+| Arch Linux 本机 | 共用 Linux 配置，使用 pacman 安装依赖 | `scripts/install-arch.sh` |
+| WSL Arch | Bash/Zsh/Vim/tmux、插件与本机链接 | `scripts/install-wsl-arch.sh` |
+| SSH Arch | 登录服务器后运行相同 Linux 安装逻辑 | `scripts/install-ssh-arch.sh` |
 
 Windows 只使用 C 盘物理目录中的克隆，当前为 `C:\Users\LYW\dotfiles`。WSL 每个发行版分别在自己的 `~/.dotfiles` 克隆，SSH 在服务器自己的 `~/.dotfiles` 克隆；所有配置链接都指向所在系统的克隆。Linux 安装器会检查真实路径与本地 Linux 文件系统，拒绝 Windows 挂载、网络挂载及源文件逃出克隆。
 
-Ubuntu/Fedora 共用 `linux/common` 的 Bash、Zsh、tmux、Vim；发行版目录只保留加载入口和系统初始化差异。Windows 使用独立的 `windows` 配置，Vim 不再引用 Linux 文件。
+Ubuntu/Fedora/Arch 共用 `linux/common` 的 Bash、Zsh、tmux、Vim；发行版目录只保留加载入口和系统初始化差异。Windows 使用独立的 `windows` 配置，Vim 不再引用 Linux 文件。
 
 Linux 通用入口是 `scripts/bootstrap.sh`（自动克隆），或克隆后的 `scripts/install-linux.sh`（安装当前工作目录里的版本）。
 Windows 原生 Bash/Zsh/tmux 不在此脚本的管理范围内；在对应 WSL 发行版里运行 Linux 入口。
 不自动创建 WSL 发行版、不配置 SSH 密钥、不改变默认 Shell、不修改 SSH 服务。
+
+Arch 新机器可单独下载 `scripts/download-arch.sh`，自动克隆并安装；命令和 pacman 更新要求见 [Arch 指南](docs/arch-linux.md)。
 
 ## 已有仓库先预览
 
@@ -29,7 +34,7 @@ Windows PowerShell：
 & "$HOME\dotfiles\scripts\install-windows.ps1" -DryRun
 ```
 
-Ubuntu/Fedora 的 Linux 终端：
+Ubuntu/Fedora/Arch 的 Linux 终端：
 
 ```bash
 bash "$HOME/.dotfiles/scripts/install-linux.sh" --dry-run
@@ -41,12 +46,13 @@ bash "$HOME/.dotfiles/scripts/install-linux.sh" --dry-run
 
 ```text
 scripts/                    克隆、依赖安装、备份和链接入口
-linux/common/bash.bash      Ubuntu/Fedora 共用 Bash 行为
+linux/common/bash.bash      Ubuntu/Fedora/Arch 共用 Bash 行为
 linux/common/zsh.zsh        共用 Zsh 历史、补全、工具和插件加载
 linux/common/vim.vim        Linux 共用 Vim 设置与四个插件声明
 linux/common/tmux.conf      共用 tmux 设置；新安装直接链接这里
 ubuntu/                     Ubuntu 入口；保留原路径兼容
 fedora/                     Fedora 入口；保留发行版系统加载
+arch/                       Arch 入口；共用 Linux 设置
 linux/common/wsl.zsh       仅在 WSL 启用的高亮路径处理
 windows/                    独立的 PowerShell、coreutils 与 Vim 配置
 hosts/cloud-ubuntu/         已有服务器的兼容入口，供原链接继续使用
@@ -55,7 +61,7 @@ docs/                       安装、同步与迁移说明
 tests/                      临时目录内的安装验证
 ```
 
-`ubuntu/.tmux.conf` 和 `fedora/.tmux.conf` 是旧路径兼容加载入口，也会动态加载同一份 `linux/common/tmux.conf`。新脚本直接链接公共文件，不再维护配置副本。
+`ubuntu/.tmux.conf`、`fedora/.tmux.conf` 和 `arch/.tmux.conf` 是旧路径兼容加载入口，也会动态加载同一份 `linux/common/tmux.conf`。新脚本直接链接公共文件，不再维护配置副本。
 
 ## 功能与同步
 
