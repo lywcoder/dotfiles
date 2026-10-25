@@ -15,9 +15,10 @@ if (Get-Command zoxide -ErrorAction SilentlyContinue) {
 
 # ================= 3. 别名与简单函数 (极速加载) =================
 # 别名几乎不占用时间，保留
-Set-Alias vim nvim
+$env:EDITOR = "vim"
+# Use real Vim and _vimrc; Neovim requires a separate init.vim.
 Set-Alias ll ls
-Set-Alias sudo gsudo
+if (Get-Command gsudo -ErrorAction SilentlyContinue) { Set-Alias sudo gsudo }
 function grep { findstr @args }
 
 # ================= 4. 模块延迟加载 (关键优化) =================
@@ -35,3 +36,7 @@ $__yaziPreviewShell = Join-Path $env:APPDATA 'yazi\config\powershell.ps1'
 if (Test-Path -LiteralPath $__yaziPreviewShell) { . $__yaziPreviewShell }
 Remove-Variable __yaziPreviewShell -ErrorAction SilentlyContinue
 # END YAZI PREVIEW FIX
+
+$__dotfilesLocal = Join-Path $HOME '.config/dotfiles/powershell.local.ps1'
+if (Test-Path -LiteralPath $__dotfilesLocal) { . $__dotfilesLocal }
+Remove-Variable __dotfilesLocal

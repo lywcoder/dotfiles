@@ -1,12 +1,15 @@
 typeset -U path PATH
 path=("$HOME/.local/bin" "$HOME/.cargo/bin" $path)
 export PATH
-export STARSHIP_CONFIG="$HOME/.config/starship.toml"
+export STARSHIP_CONFIG="${STARSHIP_CONFIG:-$HOME/.config/starship.toml}"
 
 [[ -o interactive ]] || return
 
 bindkey -v
+# Allow more time for terminal key sequences over SSH.
 KEYTIMEOUT=1
+[[ -z ${SSH_CONNECTION:-} ]] || KEYTIMEOUT=5
+export EDITOR=vim VISUAL=vim
 
 HISTFILE="$HOME/.zsh_history"
 HISTSIZE=20000
@@ -39,13 +42,13 @@ if command -v fzf >/dev/null 2>&1; then
     if _dotfiles_fzf_init="$(command fzf --zsh 2>/dev/null)" && [[ -n $_dotfiles_fzf_init ]]; then
         eval "$_dotfiles_fzf_init"
     else
-        for _dotfiles_fzf_script in /usr/share/doc/fzf/examples/key-bindings.zsh /usr/share/fzf/key-bindings.zsh "$HOME/.fzf/shell/key-bindings.zsh"; do
+        for _dotfiles_fzf_script in /usr/share/doc/fzf/examples/key-bindings.zsh /usr/share/fzf/shell/key-bindings.zsh /usr/share/fzf/key-bindings.zsh "$HOME/.fzf/shell/key-bindings.zsh"; do
             if [[ -r $_dotfiles_fzf_script ]]; then
                 source "$_dotfiles_fzf_script"
                 break
             fi
         done
-        for _dotfiles_fzf_script in /usr/share/doc/fzf/examples/completion.zsh /usr/share/fzf/completion.zsh "$HOME/.fzf/shell/completion.zsh"; do
+        for _dotfiles_fzf_script in /usr/share/doc/fzf/examples/completion.zsh /usr/share/fzf/shell/completion.zsh /usr/share/fzf/completion.zsh "$HOME/.fzf/shell/completion.zsh"; do
             if [[ -r $_dotfiles_fzf_script ]]; then
                 source "$_dotfiles_fzf_script"
                 break
@@ -91,8 +94,21 @@ unset _dotfiles_plugin
 # Load only one highlighter, after the other key bindings.
 for _dotfiles_plugin in "$HOME/.zsh/plugins/fast-syntax-highlighting/fast-syntax-highlighting.plugin.zsh" /usr/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh "$HOME/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"; do
     if [[ -r $_dotfiles_plugin ]]; then
+        # FSH 1.55 otherwise downloads this bundled theme during first shell startup.
+        if [[ $_dotfiles_plugin == */fast-syntax-highlighting.plugin.zsh && -r ${_dotfiles_plugin:h}/share/free_theme.zsh ]]; then
+            typeset -g FAST_WORK_DIR="${FAST_WORK_DIR:-${XDG_CACHE_HOME:-$HOME/.cache}/fast-syntax-highlighting}"
+            if [[ ! -e $FAST_WORK_DIR/secondary_theme.zsh ]]; then
+                if command mkdir -p -- "$FAST_WORK_DIR"; then
+                    command cp -n -- "${_dotfiles_plugin:h}/share/free_theme.zsh" "$FAST_WORK_DIR/secondary_theme.zsh"
+                fi
+            fi
+        fi
         source "$_dotfiles_plugin"
         break
     fi
 done
 unset _dotfiles_plugin
+
+# Private overrides must remain outside Git. host.sh is shared by Bash and Zsh.
+[[ ! -r "$HOME/.config/dotfiles/host.sh" ]] || source "$HOME/.config/dotfiles/host.sh"
+[[ ! -r "$HOME/.config/dotfiles/zsh.local.zsh" ]] || source "$HOME/.config/dotfiles/zsh.local.zsh"

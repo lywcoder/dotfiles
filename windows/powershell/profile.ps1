@@ -1,8 +1,7 @@
-﻿
-#region conda initialize
-# !! Contents within this block are managed by 'conda init' !!
-If (Test-Path "D:\Anaconda\Anaconda\Scripts\conda.exe") {
-    (& "D:\Anaconda\Anaconda\Scripts\conda.exe" "shell.powershell" "hook") | Out-String | ?{$_} | Invoke-Expression
+# Optional Conda hook. Set DOTFILES_CONDA_EXE for a different installation.
+$__dotfilesConda = $env:DOTFILES_CONDA_EXE
+if (-not $__dotfilesConda) { $__dotfilesConda = 'D:\Anaconda\Anaconda\Scripts\conda.exe' }
+if (Test-Path -LiteralPath $__dotfilesConda) {
+    (& $__dotfilesConda 'shell.powershell' 'hook') | Out-String | Where-Object { $_ } | Invoke-Expression
 }
-#endregion
-
+Remove-Variable __dotfilesConda

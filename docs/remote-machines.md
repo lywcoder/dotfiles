@@ -1,3 +1,5 @@
+> 历史记录：本文记录初次建库/迁移时的状态。当前跨系统安装和目录结构以 [安装指南](installation.md) 与 README 为准。
+
 # 远程机器管理
 
 当前云端 Ubuntu 使用 hosts/cloud-ubuntu，服务器本地配置链接至该机器的 ~/.dotfiles。WSL 与服务器共用 linux/common/zsh.zsh，服务器 Bash/Vim/tmux 通过入口复用 ubuntu/ 中的基础配置。

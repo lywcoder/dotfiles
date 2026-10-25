@@ -12,35 +12,39 @@ $env:EDITOR = "vim"
 $env:STARSHIP_CONFIG = "$HOME\.config\starship.toml"
 
 # 初始化 提示符 (Starship) 与 路径跳转 (Zoxide)
-Invoke-Expression (&starship init powershell | Out-String)
-Invoke-Expression (&zoxide init powershell | Out-String)
+if (Get-Command starship -ErrorAction SilentlyContinue) { Invoke-Expression (&starship init powershell | Out-String) }
+if (Get-Command zoxide -ErrorAction SilentlyContinue) { Invoke-Expression (&zoxide init powershell | Out-String) }
 
 # 加载基础增强模块
 # Import-Module posh-git
-Import-Module PSReadLine
+if (Get-Module -ListAvailable PSReadLine) { Import-Module PSReadLine }
 
 # 检查并加载 FZF 快捷键模块
 if (Get-Module -ListAvailable -Name PSFzf) {
     Import-Module PSFzf
-    Set-PsFzfOption -PSReadlineKeyHandler
+    Set-PsFzfOption -PSReadlineChordProvider 'Ctrl+t' -PSReadlineChordReverseHistory 'Ctrl+r'
 }
 
 # ==============================================================================
 # 3. 终端行为配置 (PSReadLine 历史预测)
 # ==============================================================================
-Set-PSReadLineOption -PredictionSource History
-Set-PSReadLineOption -PredictionViewStyle ListView  # 列表模式展示历史命令
-Set-PSReadLineOption -EditMode Vi
-Set-PSReadLineOption -ViModeIndicator Prompt 
-Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
+if (Get-Command Set-PSReadLineOption -ErrorAction SilentlyContinue) {
+    $options = (Get-Command Set-PSReadLineOption).Parameters
+    if ($options.ContainsKey('PredictionSource')) { Set-PSReadLineOption -PredictionSource History }
+    if ($options.ContainsKey('PredictionViewStyle') -and $PSVersionTable.PSVersion.Major -ge 7) { Set-PSReadLineOption -PredictionViewStyle ListView }
+    Set-PSReadLineOption -EditMode Vi
+    Set-PSReadLineOption -ViModeIndicator Prompt
+    if ($options.ContainsKey('HistorySearchCursorMovesToEnd')) { Set-PSReadLineOption -HistorySearchCursorMovesToEnd }
+    Set-PSReadLineKeyHandler -Key Tab -Function MenuComplete
+    Remove-Variable options
+}
 
 # 4. 别名与自定义函数 (Aliases & Functions)
 # ==============================================================================
-Set-Alias lg lazygit
-Set-Alias e eza
-Set-Alias b bat
-Set-Alias y yazi
+if (Get-Command lazygit -ErrorAction SilentlyContinue) { Set-Alias lg lazygit }
+if (Get-Command eza -ErrorAction SilentlyContinue) { Set-Alias e eza }
+if (Get-Command bat -ErrorAction SilentlyContinue) { Set-Alias b bat }
+if (Get-Command yazi -ErrorAction SilentlyContinue) { Set-Alias y yazi }
 
 # ==============================================================================
 # 5. 自动运行工具 (检测到才运行，防止报错)
@@ -51,9 +55,16 @@ if (Get-Command fastfetch -ErrorAction SilentlyContinue) {
 
 # Coreutils integration; resolve this profile even when opened through a symlink.
 $__dotfilesProfile = Get-Item -LiteralPath $PSCommandPath
-if ($__dotfilesProfile.LinkType -eq 'SymbolicLink') {
-    $__dotfilesProfile = $__dotfilesProfile.ResolveLinkTarget($true)
+$__dotfilesDepth = 0
+while ($__dotfilesProfile.LinkType -eq 'SymbolicLink') {
+    if (++$__dotfilesDepth -gt 16) { throw 'Too many profile symlink levels.' }
+    $__dotfilesTarget = [string]$__dotfilesProfile.Target
+    if (-not [IO.Path]::IsPathRooted($__dotfilesTarget)) {
+        $__dotfilesTarget = Join-Path $__dotfilesProfile.DirectoryName $__dotfilesTarget
+    }
+    $__dotfilesProfile = Get-Item -LiteralPath $__dotfilesTarget
 }
+Remove-Variable __dotfilesTarget, __dotfilesDepth -ErrorAction SilentlyContinue
 $__dotfilesCoreutils = Join-Path $__dotfilesProfile.DirectoryName 'conf.d\coreutils.ps1'
 if (Test-Path -LiteralPath $__dotfilesCoreutils) { . $__dotfilesCoreutils }
 Remove-Variable __dotfilesProfile, __dotfilesCoreutils -ErrorAction SilentlyContinue
@@ -64,3 +75,7 @@ $__yaziPreviewShell = Join-Path $env:APPDATA 'yazi\config\powershell.ps1'
 if (Test-Path -LiteralPath $__yaziPreviewShell) { . $__yaziPreviewShell }
 Remove-Variable __yaziPreviewShell -ErrorAction SilentlyContinue
 # END YAZI PREVIEW FIX
+
+$__dotfilesLocal = Join-Path $HOME '.config/dotfiles/powershell.local.ps1'
+if (Test-Path -LiteralPath $__dotfilesLocal) { . $__dotfilesLocal }
+Remove-Variable __dotfilesLocal

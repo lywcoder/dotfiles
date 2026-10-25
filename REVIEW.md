@@ -1,3 +1,5 @@
+> 历史记录：本文记录初次建库/迁移时的状态。当前跨系统安装和目录结构以 [安装指南](docs/installation.md) 与 README 为准。
+
 # 当前配置审核说明
 
 Windows/WSL 的首次链接迁移已完成；后续云端 Ubuntu 统一使用共享的 Zsh 和 WSL Bash/Vim/tmux 基础，机器入口位于 hosts/cloud-ubuntu。
