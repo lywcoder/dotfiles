@@ -43,7 +43,8 @@ $links = @(
     @('windows/powershell/Microsoft.PowerShell_profile.ps1', (Join-Path $DocumentsDirectory 'PowerShell/Microsoft.PowerShell_profile.ps1')),
     @('windows/windows-powershell/profile.ps1', (Join-Path $DocumentsDirectory 'WindowsPowerShell/profile.ps1')),
     @('windows/windows-powershell/Microsoft.PowerShell_profile.ps1', (Join-Path $DocumentsDirectory 'WindowsPowerShell/Microsoft.PowerShell_profile.ps1')),
-    @('windows/vim/_vimrc', (Join-Path $HomeDirectory '_vimrc'))
+    @('windows/vim/_vimrc', (Join-Path $HomeDirectory '_vimrc')),
+    @('windows/psmux/psmux.conf', (Join-Path $HomeDirectory '.psmux.conf'))
 )
 foreach ($managedSource in @('windows/vim/vim.vim', 'windows/powershell/conf.d/coreutils.ps1')) {
     $null = Assert-DotfilesWindowsPath (Join-Path $repoRoot $managedSource)
@@ -99,7 +100,7 @@ if (-not $SkipDependencies) {
         @('git', 'Git.Git'), @('pwsh', 'Microsoft.PowerShell'), @('vim', 'vim.vim'),
         @('starship', 'Starship.Starship'), @('zoxide', 'ajeetdsouza.zoxide'),
         @('fzf', 'junegunn.fzf'), @('eza', 'eza-community.eza'), @('bat', 'sharkdp.bat'),
-        @('coreutils', 'uutils.coreutils')
+        @('coreutils', 'uutils.coreutils'), @('psmux', 'marlocarlo.psmux')
     )) { Install-Tool $tool[0] $tool[1] }
     if ($Extras) {
         foreach ($tool in @(@('lazygit', 'JesseDuffield.lazygit'), @('yazi', 'sxyazi.yazi'), @('fastfetch', 'Fastfetch-cli.Fastfetch'))) { Install-Tool $tool[0] $tool[1] }
@@ -165,4 +166,4 @@ try {
 }
 Write-Output "Complete. Backups: $backupRoot"
 Write-Output 'Start a new PowerShell. Existing themes, Conda installations and Terminal settings were preserved.'
-Write-Output 'Native Windows uses PowerShell and Vim. Bash/Zsh/tmux belong inside WSL; use the corresponding Linux installer there.'
+Write-Output 'Native Windows uses PowerShell, Vim and psmux. Linux Bash/Zsh/tmux use their own Linux installers.'

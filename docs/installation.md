@@ -24,9 +24,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File $setup
 Git 缺失时先用 winget 安装；若新 PATH 尚未可见，按提示重开 PowerShell 后重试。
 Windows 不强制搬迁已有克隆，不覆盖目录；已有克隆不会自动 pull/reset。
 
-winget 安装：Git、PowerShell 7、Vim、Starship、Zoxide、FZF、eza、bat、uutils coreutils。
+winget 安装：Git、PowerShell 7、Vim、Starship、Zoxide、FZF、eza、bat、uutils coreutils、psmux。
 PSReadLine 和 PSFzf 使用 PSGallery 的 CurrentUser 范围；第一次访问仓库、NuGet 或软件安装可能出现系统提示。
 Windows PowerShell 5.1 保持较轻量的原配置；PowerShell 7 提供完整的预测/快捷键配置。两者都使用真正的 Vim，不再把 `vim` 偷换成 `nvim`。
+
+## Windows psmux
+
+Windows 完整安装包含 psmux 及配置链接。只给现有 psmux 接入配置可运行 `scripts/install-psmux.ps1`，支持无符号链接权限时的 source-file 加载器后备；详见 [psmux 指南](psmux.md)。PowerShell 的 fastfetch 启动段已注释。
 
 ## WSL Ubuntu / SSH Ubuntu 新机器
 
@@ -108,7 +112,7 @@ Windows 已有克隆：
 
 安装器保留已有非空插件目录，不自动更新插件。首次下载使用上游当时版本，不承诺所有机器有相同插件版本；如需完全可复现，可后续引入版本锁定。Vim 可用 `:PlugStatus` 查看插件，`:PlugUpdate` 主动更新。
 
-只管理当前用户的四个 Linux 配置入口，或 Windows 五个入口。已有正确链接直接保留；普通文件、旧链接、失效链接先移动到私有备份目录，然后创建新链接。真实目录冲突会拒绝安装。链接阶段失败会尝试恢复该阶段已经替换的入口。不会清理旧备份或旧插件。
+只管理当前用户的四个 Linux 配置入口，或 Windows 六个入口（含 ~/.psmux.conf）。已有正确链接直接保留；普通文件、旧链接、失效链接先移动到私有备份目录，然后创建新链接。真实目录冲突会拒绝安装。链接阶段失败会尝试恢复该阶段已经替换的入口。不会清理旧备份或旧插件。
 
 备份在各系统用户目录的 `.local/state/dotfiles-backups/时间-PID/`，Linux 权限 700。依赖/插件安装先于链接；下载失败不会开始替换入口。恢复配置不会卸载软件包或删除新下载的插件。
 

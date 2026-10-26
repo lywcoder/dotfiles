@@ -49,9 +49,10 @@ if (Get-Command yazi -ErrorAction SilentlyContinue) { Set-Alias y yazi }
 # ==============================================================================
 # 5. 自动运行工具 (检测到才运行，防止报错)
 # ==============================================================================
-if (Get-Command fastfetch -ErrorAction SilentlyContinue) {
-    fastfetch
-}
+# Disabled at startup; run fastfetch manually when needed.
+# if (Get-Command fastfetch -ErrorAction SilentlyContinue) {
+#     fastfetch
+# }
 
 # Coreutils integration; resolve this profile even when opened through a symlink.
 $__dotfilesProfile = Get-Item -LiteralPath $PSCommandPath

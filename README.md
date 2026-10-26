@@ -7,7 +7,7 @@ Windows、WSL Ubuntu/Fedora/Arch，以及通过 SSH 使用的 Ubuntu/Fedora/Arch
 
 | 环境 | 自动处理 | 安装入口 |
 | --- | --- | --- |
-| Windows | PowerShell 7、Windows PowerShell 5.1、Vim、依赖和配置链接 | `scripts/bootstrap.ps1` |
+| Windows | PowerShell 7、Windows PowerShell 5.1、Vim、psmux、依赖和配置链接 | `scripts/bootstrap.ps1` |
 | WSL Ubuntu | Bash、Zsh、Vim、tmux、依赖和插件 | `scripts/install-wsl-ubuntu.sh` |
 | WSL Fedora | 同上，保留 Fedora `/etc/bashrc` 加载 | `scripts/install-wsl-fedora.sh` |
 | SSH Ubuntu | 在登录后的服务器本机安装上述 Linux 配置 | `scripts/install-ssh-ubuntu.sh` |
@@ -21,7 +21,7 @@ Windows 只使用 C 盘物理目录中的克隆，当前为 `C:\Users\LYW\dotfil
 Ubuntu/Fedora/Arch 共用 `linux/common` 的 Bash、Zsh、tmux、Vim；发行版目录只保留加载入口和系统初始化差异。Windows 使用独立的 `windows` 配置，Vim 不再引用 Linux 文件。
 
 Linux 通用入口是 `scripts/bootstrap.sh`（自动克隆），或克隆后的 `scripts/install-linux.sh`（安装当前工作目录里的版本）。
-Windows 原生 Bash/Zsh/tmux 不在此脚本的管理范围内；在对应 WSL 发行版里运行 Linux 入口。
+Windows 原生多路复用使用 psmux；Bash/Zsh 与真正的 Linux tmux 在各自 WSL/SSH 系统中管理。psmux 的配置和快捷键说明见 [Windows psmux](docs/psmux.md)。
 不自动创建 WSL 发行版、不配置 SSH 密钥、不改变默认 Shell、不修改 SSH 服务。
 
 Arch 新机器可单独下载 `scripts/download-arch.sh`，自动克隆并安装；命令和 pacman 更新要求见 [Arch 指南](docs/arch-linux.md)。
@@ -54,7 +54,7 @@ ubuntu/                     Ubuntu 入口；保留原路径兼容
 fedora/                     Fedora 入口；保留发行版系统加载
 arch/                       Arch 入口；共用 Linux 设置
 linux/common/wsl.zsh       仅在 WSL 启用的高亮路径处理
-windows/                    独立的 PowerShell、coreutils 与 Vim 配置
+windows/                    独立的 PowerShell、coreutils、Vim 与 psmux 配置
 hosts/cloud-ubuntu/         已有服务器的兼容入口，供原链接继续使用
 examples/                   私有配置位置说明
 docs/                       安装、同步与迁移说明
@@ -69,7 +69,7 @@ Vim：基础编辑设置、lightline、vim-surround、auto-pairs、gruvbox。插
 
 Windows Vim 的设置独立保存在 `windows/vim/vim.vim`；插件与 Linux 可相同，但配置修改互不影响。
 
-默认基础工具包含 Git、Bash/Zsh（Linux）、Vim、tmux（Linux）、FZF、Zoxide、bat 和 Starship；eza 在启用的软件源中可用时安装，否则保留 ls。`--extras` / `-Extras` 额外尝试 lazygit、yazi、fastfetch；Linux 上缺包时明确提示，不自动开启 COPR/PPA。Windows 另外保留 coreutils 集成。
+默认基础工具包含 Git、Bash/Zsh（Linux）、Vim、tmux（Linux）、FZF、Zoxide、bat 和 Starship；eza 在启用的软件源中可用时安装，否则保留 ls。`--extras` / `-Extras` 额外尝试 lazygit、yazi、fastfetch；Linux 上缺包时明确提示，不自动开启 COPR/PPA。Windows 另外保留 coreutils 集成，并安装 psmux。PowerShell 启动时的 fastfetch 已注释，仍可手动运行。
 
 已有 Starship 主题、Terminal 字体、机器私有配置保留；不同机器原有主题可能不同。新机器没有主题文件时采用 Starship 默认外观。图标需要在 Windows Terminal 中自行选择 Nerd Font。
 

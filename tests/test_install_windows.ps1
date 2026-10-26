@@ -20,7 +20,8 @@ try {
     foreach ($path in @('PowerShell/profile.ps1', 'PowerShell/Microsoft.PowerShell_profile.ps1', 'WindowsPowerShell/profile.ps1', 'WindowsPowerShell/Microsoft.PowerShell_profile.ps1')) {
         if ((Get-Item -LiteralPath (Join-Path $docs $path)).LinkType -ne 'SymbolicLink') { throw "Missing link: $path" }
     }
-    Write-Output 'PASS: preview, five links, backups, repeat install.'
+    if ((Get-Item -LiteralPath (Join-Path $testHome '.psmux.conf')).LinkType -ne 'SymbolicLink') { throw 'Missing psmux link.' }
+    Write-Output 'PASS: preview, six links, backups, repeat install.'
 } finally {
     # Only delete the verified, uniquely created test directory. Remove links first.
     $resolved = [IO.Path]::GetFullPath($temp)
