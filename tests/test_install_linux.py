@@ -186,7 +186,7 @@ class LinuxInstallTests(unittest.TestCase):
         common = self.repo / 'linux/common/tmux.conf'
         with common.open('a') as stream:
             stream.write('\nset -g history-limit 54321\n')
-        for distro in ['ubuntu', 'fedora', 'arch']:
+        for distro in ['ubuntu', 'debian', 'fedora', 'arch']:
             with self.subTest(distro=distro):
                 entry = self.home / '.tmux.conf'
                 if entry.is_symlink():

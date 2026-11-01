@@ -49,7 +49,13 @@ bash /tmp/dotfiles-bootstrap.sh --profile wsl-ubuntu --dry-run
 bash /tmp/dotfiles-bootstrap.sh --profile wsl-ubuntu
 ```
 
-SSH Ubuntu 把 `wsl-ubuntu` 换成 `ssh-ubuntu`。也可以省略 `--profile`，脚本自动检测 Ubuntu/Fedora/Arch 与 WSL。
+SSH Ubuntu 把 `wsl-ubuntu` 换成 `ssh-ubuntu`。也可以省略 `--profile`，脚本自动检测 Debian/Ubuntu/Fedora/Arch 与 WSL。
+
+## Debian（本机、WSL、SSH）
+
+Debian 与 Ubuntu 加载相同的 `linux/common` 设置，依赖使用 APT。已有克隆可运行 `bash scripts/install-linux.sh --profile wsl-debian --dry-run`；预览确认后去掉 `--dry-run` 安装。本机用 `debian`，SSH 登录后的服务器用 `ssh-debian`。
+
+新机器可使用 `scripts/download-debian.sh`，或 `install-debian.sh` / `install-wsl-debian.sh` / `install-ssh-debian.sh` 场景入口。独立下载入口需先发布到 GitHub；完整步骤与自定义克隆路径说明见 [Debian 指南](debian-linux.md)。
 
 ## WSL Fedora / SSH Fedora 新机器
 
@@ -68,7 +74,7 @@ SSH Fedora 把 `wsl-fedora` 换成 `ssh-fedora`。Fedora 的 `.bashrc` 会先读
 `realpath`、`findmnt` 通常由 coreutils/util-linux 预装；最小系统缺失时先安装这两个基础包。配置源文件还必须实际位于当前克隆内，不允许链接到外部文件。旧的 HOME 配置链接可以备份并替换，但不会沿旧链接改写原目标。
 普通用户直接执行脚本；脚本只在安装系统软件包时调用 sudo。不要用 `sudo bash ...` 给普通账户装配置；真正的 root 登录则管理 /root 自己的配置。
 
-Linux 基础依赖使用 apt/dnf。Ubuntu 包为 `vim`、Fedora 包为 `vim-enhanced`；Ubuntu 的 bat 命令可用 batcat，配置会兼容。
+Linux 基础依赖使用 apt/dnf/pacman。Debian/Ubuntu 包为 `vim`、Fedora 包为 `vim-enhanced`；Debian/Ubuntu 的 bat 命令可用 batcat，配置会兼容。
 Starship 缺失时从官方安装器下载至 `~/.local/bin`，不添加第三方软件源。eza/可选工具不在启用软件源时会提示缺失，并使用后备行为；不会隐式切换第三方源。
 
 ## Arch Linux（本机、WSL、SSH）
@@ -92,7 +98,7 @@ bash "$HOME/.dotfiles/scripts/install-linux.sh"
 bash "$HOME/.dotfiles/scripts/install-wsl-fedora.sh" --dry-run
 ```
 
-四个场景入口都复用 bootstrap，默认选 `~/.dotfiles`。自定义克隆路径时，使用该克隆的 `install-linux.sh`，或给场景入口加 `--dir "$HOME/自定义路径"`。
+各 Linux 场景入口都复用 bootstrap，默认选 `~/.dotfiles`。自定义克隆路径时，使用该克隆的 `install-linux.sh`，或给场景入口加 `--dir "$HOME/自定义路径"`。
 
 Windows 已有克隆：
 
@@ -132,8 +138,8 @@ Windows 在确认目标仍是链接后用 Remove-Item 删除该链接，再用 M
 
 ## 配置共享边界
 
-Ubuntu、Fedora 与 Arch 加载同一份 `linux/common/bash.bash`、`zsh.zsh`、`vim.vim` 和 `tmux.conf`。Fedora Bash 额外加载 `/etc/bashrc`，WSL 高亮路径处理只在 WSL 启用；这些是平台适配，不是另外维护一套主要配置。
-Windows 只加载 `windows` 目录中的设置；`windows/vim/vim.vim` 独立于 Linux Vim。安装器自动识别 Ubuntu/Fedora/Arch；不能据此保证所有衍生发行版的软件源和包名都相同。
+Debian、Ubuntu、Fedora 与 Arch 加载同一份 `linux/common/bash.bash`、`zsh.zsh`、`vim.vim` 和 `tmux.conf`。Debian 与 Ubuntu 采用相同加载设置；Fedora Bash 额外加载 `/etc/bashrc`，WSL 高亮路径处理只在 WSL 启用。这些是平台适配，不是另外维护一套主要配置。
+Windows 只加载 `windows` 目录中的设置；`windows/vim/vim.vim` 独立于 Linux Vim。安装器自动识别 Debian/Ubuntu/Fedora/Arch 的明确发行版 ID；不能据此保证所有衍生发行版的软件源和包名都相同。Windows 默认仍为 `$HOME\dotfiles`，本轮不迁移目录或修改活动链接。
 
 Arch 通过 `arch/` 入口加载公共配置，支持本机、WSL 与 SSH；没有在已有 Arch HOME 执行安装。详见 [Arch 指南](arch-linux.md)。
 

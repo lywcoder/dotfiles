@@ -5,13 +5,14 @@ BRANCH=main
 DEST="$HOME/.dotfiles"
 DRY_RUN=0
 SKIP_DEPS=0
+PROFILE=auto
 ARGS=()
 while (($#)); do
     case $1 in
         --repo|--branch|--dir) [[ $# -ge 2 ]] || { printf 'Missing value: %s\n' "$1" >&2; exit 2; }
             case $1 in --repo) REPO=$2 ;; --branch) BRANCH=$2 ;; --dir) DEST=$2 ;; esac; shift 2 ;;
         --dry-run) DRY_RUN=1; ARGS+=("$1"); shift ;;
-        --profile) [[ $# -ge 2 ]] || exit 2; ARGS+=("$1" "$2"); shift 2 ;;
+        --profile) [[ $# -ge 2 ]] || exit 2; PROFILE=$2; ARGS+=("$1" "$2"); shift 2 ;;
         --skip-dependencies) SKIP_DEPS=1; ARGS+=("$1"); shift ;;
         --skip-plugins|--extras) ARGS+=("$1"); shift ;;
         -h|--help) printf 'Usage: bootstrap.sh [--dir ~/.dotfiles] [--repo URL] [--branch main] [installer options]\n'; exit 0 ;;
@@ -19,6 +20,17 @@ while (($#)); do
     esac
 done
 [[ -z ${SUDO_USER:-} || ${SUDO_USER} == root ]] || { printf 'Run without sudo.\n' >&2; exit 1; }
+# Validate the effective profile before any package operation or clone, even on a
+# fresh machine. The installer repeats this check when run directly from a clone.
+. /etc/os-release
+case ${ID:-} in debian|ubuntu|fedora|arch) ;; *) printf 'Only Debian/Ubuntu/Fedora/Arch Linux are supported.\n' >&2; exit 1 ;; esac
+case $PROFILE in auto|debian|arch|wsl-debian|wsl-ubuntu|wsl-fedora|wsl-arch|ssh-debian|ssh-ubuntu|ssh-fedora|ssh-arch) ;;
+    *) printf 'Invalid profile: %s\n' "$PROFILE" >&2; exit 1 ;;
+esac
+if [[ $PROFILE != auto && ${PROFILE##*-} != "$ID" ]]; then
+    printf 'Profile %s does not match %s.\n' "$PROFILE" "$ID" >&2
+    exit 1
+fi
 # BEGIN filesystem boundary checks (also embedded in bootstrap/install-linux).
 require_linux_path() {
     local requested=$1 physical probe fs
@@ -61,14 +73,13 @@ elif ((DRY_RUN)); then
 else
     if ! command -v git >/dev/null 2>&1; then
         if ((SKIP_DEPS)); then printf 'Git is required to clone; install it or omit --skip-dependencies.\n' >&2; exit 1; fi
-        . /etc/os-release
         elevate=()
         if ((EUID != 0)); then command -v sudo >/dev/null || { printf 'Install git or sudo first.\n' >&2; exit 1; }; elevate=(sudo); fi
         case ${ID:-} in
-            ubuntu) "${elevate[@]}" apt-get update; "${elevate[@]}" apt-get install -y git ca-certificates ;;
+            ubuntu|debian) "${elevate[@]}" apt-get update; "${elevate[@]}" apt-get install -y git ca-certificates ;;
             fedora) "${elevate[@]}" dnf install -y git ca-certificates ;;
             arch) "${elevate[@]}" pacman -S --needed --noconfirm git ca-certificates ;;
-            *) printf 'Only Ubuntu/Fedora/Arch Linux are supported.\n' >&2; exit 1 ;;
+            *) printf 'Only Debian/Ubuntu/Fedora/Arch Linux are supported.\n' >&2; exit 1 ;;
         esac
     fi
     git clone --branch "$BRANCH" --single-branch -- "$REPO" "$DEST"

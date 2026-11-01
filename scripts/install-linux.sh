@@ -6,7 +6,7 @@ ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
 PROFILE=auto DRY_RUN=0 SKIP_DEPS=0 SKIP_PLUGINS=0 EXTRAS=0
 usage() {
     cat <<'EOF'
-Usage: bash scripts/install-linux.sh [--profile auto|arch|wsl-ubuntu|wsl-fedora|wsl-arch|ssh-ubuntu|ssh-fedora|ssh-arch]
+Usage: bash scripts/install-linux.sh [--profile auto|debian|arch|wsl-debian|wsl-ubuntu|wsl-fedora|wsl-arch|ssh-debian|ssh-ubuntu|ssh-fedora|ssh-arch]
        [--dry-run] [--skip-dependencies] [--skip-plugins] [--extras]
 Default: install dependencies/plugins and create four backed-up config symlinks.
 Run as the intended account, not "sudo bash ...". root is supported for root's own files.
@@ -29,17 +29,17 @@ die() { say "ERROR: $*" >&2; exit 1; }
 [[ -r /etc/os-release ]] || die '/etc/os-release is missing.'
 # shellcheck source=/dev/null
 . /etc/os-release
-case ${ID:-} in ubuntu|fedora|arch) DISTRO=$ID ;; *) die "Supported distributions: Ubuntu, Fedora, Arch Linux (found ${ID:-unknown})." ;; esac
+case ${ID:-} in debian|ubuntu|fedora|arch) DISTRO=$ID ;; *) die "Supported distributions: Debian, Ubuntu, Fedora, Arch Linux (found ${ID:-unknown})." ;; esac
 if [[ $PROFILE == auto ]]; then
     if [[ -n ${WSL_DISTRO_NAME:-} ]] || grep -qi microsoft /proc/sys/kernel/osrelease; then
         PROFILE=wsl-$DISTRO
-    elif [[ $DISTRO == arch && -z ${SSH_CONNECTION:-} ]]; then
-        PROFILE=arch
+    elif [[ ( $DISTRO == arch || $DISTRO == debian ) && -z ${SSH_CONNECTION:-} ]]; then
+        PROFILE=$DISTRO
     else
         PROFILE=ssh-$DISTRO
     fi
 fi
-case $PROFILE in arch|wsl-ubuntu|wsl-fedora|wsl-arch|ssh-ubuntu|ssh-fedora|ssh-arch) ;; *) die "Invalid profile: $PROFILE" ;; esac
+case $PROFILE in debian|arch|wsl-debian|wsl-ubuntu|wsl-fedora|wsl-arch|ssh-debian|ssh-ubuntu|ssh-fedora|ssh-arch) ;; *) die "Invalid profile: $PROFILE" ;; esac
 [[ ${PROFILE##*-} == "$DISTRO" ]] || die "Profile $PROFILE does not match $DISTRO."
 [[ -z ${ZDOTDIR:-} || ${ZDOTDIR} == "$HOME" ]] || die 'Custom ZDOTDIR detected; configure its entry manually before installation.'
 # BEGIN filesystem boundary checks (also embedded in bootstrap/install-linux).
@@ -110,7 +110,7 @@ as_root() {
 }
 optional_package() {
     local pkg=$1
-    if [[ $DISTRO == ubuntu ]]; then
+    if [[ $DISTRO == ubuntu || $DISTRO == debian ]]; then
         if apt-cache show "$pkg" >/dev/null 2>&1; then as_root apt-get install -y "$pkg" || return 1;
         else say "OPTIONAL unavailable in enabled repositories: $pkg"; fi
     elif [[ $DISTRO == arch ]]; then
@@ -122,7 +122,7 @@ optional_package() {
     fi
 }
 if ((!SKIP_DEPS)); then
-    if [[ $DISTRO == ubuntu ]]; then
+    if [[ $DISTRO == ubuntu || $DISTRO == debian ]]; then
         as_root apt-get update
         as_root apt-get install -y git curl ca-certificates bash bash-completion zsh vim tmux fzf zoxide bat
     elif [[ $DISTRO == arch ]]; then
